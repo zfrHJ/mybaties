@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace命名空间特殊作用： 如果使用mapper动态代理方法，这里就需要配置mapper接口地址 -->
+<mapper>
+	<!--根据用户id查询一条记录(返回单条记录) -->
+	<!-- select 标签表示sql查询，内容会封装到Mapped Statement中 可以将这个select标签称为一个statement 
+		id:Statement 的id 用于标识select中定义的sql，id是在同一个命名空间中不允许重复 #{}:表示一个占位符，避免sql注入 
+		parameterType:表示输入参数的类型 resultType:表示输出 结果集单条记录映射的java对象类型，select查询的字段名和resultTyep 
+		中属性名一致，才能映射 #{}:表示parameter输入参数的变量，如歌输入参数是简单类型，使用#{}占位符 变量名可以使用value或其其它的 -->
+
+	<select id="findUserId" parameterType="int" resultType="itheima.mybaties.po.User">
+
+		select * from user where id=#{id}
+	</select>
+	<resultMap type="orders" id="ordersUserResulMap">
+		<!-- id:订单信息的唯一约束 -->
+		<!-- 如果由多个字段决定一条唯一记录，id便签需要定义多个 -->
+		<result column="id" property="id" />
+		<result column="order_number" property="order_number" />
+		<result column="user_id " property="user_id" />
+		<!-- 配置用户映射信息 将sql查询的用户信息映射到orders中的user属性中 association ：用于单个失联对象的映射 property:将关联信息映射到orders的那个属性 
+			javaType: 映射属性的类型 -->
+		<association property="user" javaType="com.itheima.po.User">
+			<!-- id:关联的用户信息的唯一约束 -->
+			<!-- property :id指定的列映射到关联com.itheima.po.User类的那个属性中 -->
+			<id column="user_id" property="id" />
+			<result column="username" property="username" />
+			<result column="address" property="address" />
+
+		</association>
+	</resultMap>
+	<!--一 对多 -->
+	<resultMap type="orders" id="ordersUserDetailResultMap"
+	extends="ordersUserResultMap">
+	<!-- 订单级用户信息，继承ordersUserResultMap -->
+	<!-- 映射订单明细信息collection:映射集合对象 property:将明细信息映射到那个集合属性中。ofType：集合中对象的类型-->
+	<collection property="orserdetails" ofType="com.itheima.po.Orderdetail">
+	<!-- id:订单明细的唯一约束
+	property:ofType指定类型的属性
+	 -->
+	 <id column="orderdetail_id" property="id"/>
+	 <result column="item_id" property="item_id"/>
+	 <result column="item_num" property="item_num"/>
+	 <result column="item_price" property="item_price"/>	
+	</collection>
+	</resultMap>
+	<select id="findOrderUserDetailList" resultMap="ordersUserDetailResultMap">
+	SELECT
+		orders.*,
+		user.username,
+		user.address,
+		orderdetail.id orderdetail_id,
+		orderdetail.item_id,
+		orderdetail.item_num,
+		orderdetail.item_price
+		FROM
+		orders,
+		USER,
+		orderdetail
+		WHERE orders.user_id = user.id AND orders.id =
+		orderdetail.orders_id	
+	
+	</select>
+	<!-- 查询订单及订单明细信息及商品信息 -->
+	<select id="findOrdersUserDetailItemList" resultMap="ordersUserDetailItemResultMap">
+		SELECT
+		orders.*,
+		user.username,
+		user.address,
+		orderdetail.id orderdetail_id,
+		orderdetail.item_id,
+		orderdetail.item_num,
+		orderdetail.item_price ,
+		items.item_detail,
+		items.item_name,
+		items.item_price item_price_price
+		FROM
+		orders,
+		USER,
+		orderdetail,
+		items
+		WHERE orders.user_id = user.id
+		AND
+		orders.id = orderdetail.orders_id
+		AND orderdetail.item_id = items.id
+
+	</select>
+	
+	
+	
+	
+	
+	
+	
+</mapper>
